@@ -5,6 +5,7 @@ import type {
   Message as MessageView,
   MessagePage,
   ConversationEventView,
+  ConversationNoteView,
 } from '@smartdesk/shared';
 import type {
   Prisma,
@@ -215,7 +216,7 @@ export class ConversationService {
       actor.type === 'agent'
         ? await tx.$queryRaw<
             { conversation_id: string; unread: number }[]
-          >`SELECT m.conversation_id, count(*)::int AS unread FROM messages m LEFT JOIN conversation_reads r ON r.organization_id=m.organization_id AND r.conversation_id=m.conversation_id AND r.membership_id=${actor.id}::uuid WHERE m.organization_id=${actor.organizationId}::uuid AND m.conversation_id=ANY(${ids}::uuid[]) AND m.seq>coalesce(r.last_read_seq,0) AND m.sender_id<>${actor.id}::uuid GROUP BY m.conversation_id`
+          >`SELECT m.conversation_id, count(*)::int AS unread FROM messages m LEFT JOIN conversation_reads r ON r.organization_id=m.organization_id AND r.conversation_id=m.conversation_id AND r.membership_id=${actor.id}::uuid WHERE m.organization_id=${actor.organizationId}::uuid AND m.conversation_id=ANY(${ids}::uuid[]) AND m.seq>coalesce(r.last_read_seq,0) AND m.sender_type='visitor' GROUP BY m.conversation_id`
         : [];
     const customerMap = new Map(customers.map((c) => [c.id, c]));
     const summaryMap = new Map(
@@ -665,6 +666,105 @@ export class ConversationService {
           nextCursor:
             rows.length > limit && last
               ? encode({ scope, version: last.version, id: last.id })
+              : null,
+        },
+      };
+    });
+  }
+  async notes(r: IdentityRequest, conversationId: string) {
+    const writing = r.method === 'POST';
+    query(r, writing ? [] : ['cursor', 'limit']);
+    conversationId = id(conversationId);
+    return this.transaction(r, false, async (tx, actor) => {
+      if (actor.type !== 'agent')
+        fail(403, 'FORBIDDEN', '内部备注仅供团队使用');
+      const c = await this.conversation(tx, actor, conversationId, writing);
+      const view = (note: {
+        id: string;
+        conversationId: string;
+        authorMembershipId: string;
+        clientNoteId: string;
+        content: string;
+        createdAt: Date;
+      }): ConversationNoteView => ({
+        ...note,
+        createdAt: note.createdAt.toISOString(),
+      });
+      const select = {
+        id: true,
+        conversationId: true,
+        authorMembershipId: true,
+        clientNoteId: true,
+        content: true,
+        createdAt: true,
+      } as const;
+      if (writing) {
+        if (actor.role !== 'admin' && c.assignedMembershipId !== actor.id)
+          fail(403, 'NOT_ASSIGNEE', '只有负责人或管理员可添加备注');
+        const b = object(r.body, ['clientNoteId', 'content']);
+        const input = messageInput({
+          clientMessageId: b.clientNoteId,
+          content: b.content,
+        });
+        const key = {
+          organizationId: actor.organizationId,
+          conversationId,
+          authorMembershipId: actor.id,
+          clientNoteId: input.clientMessageId,
+        };
+        const previous = await tx.conversationNote.findUnique({
+          where: {
+            organizationId_conversationId_authorMembershipId_clientNoteId: key,
+          },
+          select,
+        });
+        if (previous) {
+          if (previous.content !== input.content)
+            fail(409, 'IDEMPOTENCY_CONFLICT', '同一备注标识不能用于不同正文');
+          return { status: 200, data: view(previous) };
+        }
+        if (c.status === 'closed')
+          fail(409, 'CONVERSATION_CLOSED', '已关闭会话的备注只读');
+        const note = await tx.conversationNote.create({
+          data: { ...key, content: input.content },
+          select,
+        });
+        return { status: 201, data: view(note) };
+      }
+      const scope = `notes:${actor.organizationId}:${actor.id}:${conversationId}`;
+      const limit = integer(r.query.get('limit') ?? '50', 1, 100);
+      const cursor = r.query.get('cursor');
+      let before: Prisma.ConversationNoteWhereInput = {};
+      if (cursor) {
+        const decoded = decode(cursor, scope, ['createdAt', 'id']);
+        const date = new Date(text(decoded.createdAt, 1, 40));
+        if (Number.isNaN(date.getTime()))
+          fail(422, 'INVALID_CURSOR', '备注游标无效');
+        before = {
+          OR: [
+            { createdAt: { lt: date } },
+            { createdAt: date, id: { lt: id(decoded.id) } },
+          ],
+        };
+      }
+      const rows = await tx.conversationNote.findMany({
+        where: {
+          organizationId: actor.organizationId,
+          conversationId,
+          ...before,
+        },
+        select,
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        take: limit + 1,
+      });
+      const items = rows.slice(0, limit).map(view),
+        last = items.at(-1);
+      return {
+        data: {
+          items,
+          nextCursor:
+            rows.length > limit && last
+              ? encode({ scope, createdAt: last.createdAt, id: last.id })
               : null,
         },
       };

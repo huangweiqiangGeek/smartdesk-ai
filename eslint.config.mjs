@@ -72,6 +72,7 @@ export default tseslint.config(
       'tests/integration/realtime.mjs',
       'tests/integration/frontend.mjs',
       'tests/integration/reception.mjs',
+      'tests/integration/inbox.mjs',
     ],
     languageOptions: {
       globals: {

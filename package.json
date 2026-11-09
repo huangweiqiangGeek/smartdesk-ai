@@ -30,6 +30,7 @@
     "test:realtime": "pnpm --filter @smartdesk/shared build && pnpm --filter @smartdesk/server build && node tests/integration/realtime.mjs",
     "test:frontend": "pnpm --filter @smartdesk/shared build && pnpm --filter @smartdesk/server build && node tests/integration/frontend.mjs",
     "test:reception": "pnpm --filter @smartdesk/shared build && pnpm --filter @smartdesk/server build && node tests/integration/reception.mjs",
+    "test:inbox": "pnpm build && node tests/integration/inbox.mjs",
     "db:seed": "node scripts/seed.mjs",
     "db:migrate": "prisma migrate deploy",
     "deps:up": "docker compose up -d --wait",

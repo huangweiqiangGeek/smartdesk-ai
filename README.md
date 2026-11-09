@@ -2,11 +2,13 @@
 
 面向 SaaS 和服务型网站的多租户智能客服系统，以 AI 优先接待、必要时转人工为核心流程，支持可靠消息收发、团队协作与工单跟进。
 
-当前状态：T01—T08 已通过本地功能验收。已有四个应用入口、真实 PostgreSQL+pgvector/Redis、24 个业务实体与数据库约束，账号/企业/成员/邀请和跨站访客身份可用。T05 提供原子首消息、seq、幂等与授权历史 API；T06 提供 Socket 与 Outbox 实时投递、队列生产和故障恢复；T07 提供统一前端客户端、消息归并、连续水位恢复及草稿隔离；T08 提供统一接待状态和在线心跳。聊天界面归 T09/T10，P09 管理界面归 T19。见 [数据库验收](docs/database-development.md)、[身份验收](docs/identity-development.md)、[跨站接入验收](docs/widget-development.md)、[消息验收](docs/messages-development.md)、[实时验收](docs/realtime-development.md)、[前端连接验收](docs/frontend-development.md) 与 [接待验收](docs/reception-development.md)。八个模块和五条规则见 [V1 PRD](docs/prd-v1.md)，T09—T26 按 [任务清单](docs/development-tasks-v1.md) 开发。
+当前状态：T01—T09 已通过本地功能验收。已有四个应用入口、真实 PostgreSQL+pgvector/Redis、24 个业务实体与数据库约束，账号/企业/成员/邀请和跨站访客身份可用。T05 提供原子首消息、seq、幂等与授权历史 API；T06 提供 Socket 与 Outbox 实时投递；T07 提供统一前端客户端、连续水位恢复及草稿隔离；T08 提供统一接待状态和在线心跳；T09 提供三栏客服工作台、授权未读、公开消息与独立内部备注。访客完整聊天页归 T10，P09 管理界面归 T19，AI 辅助尚未接入。见 [数据库验收](docs/database-development.md)、[身份验收](docs/identity-development.md)、[跨站接入验收](docs/widget-development.md)、[消息验收](docs/messages-development.md)、[实时验收](docs/realtime-development.md)、[前端连接验收](docs/frontend-development.md)、[接待验收](docs/reception-development.md) 与 [工作台验收](docs/inbox-development.md)。八个模块和五条规则见 [V1 PRD](docs/prd-v1.md)，T10—T26 按 [任务清单](docs/development-tasks-v1.md) 开发。
 
 开发前从 [AGENTS.md](AGENTS.md) 按任务读取 [docs 开发规范](docs/README.md)；工作区上下文见 [DevCodex Profile](../.devcodex/smartdesk-ai/profile/README.md)。
 
 T08 已补齐在线心跳、交接/认领/指派/转交/关闭/人工重开，以及成员停用和关闭 AI 的事务补偿，见 [接待验收](docs/reception-development.md)。运行 `pnpm test:reception` 执行隔离数据库、双 API、Socket 和真实浏览器验收；它保留已有体验数据并清理自建服务。
+
+进入企业后点击“打开客服工作台”，或访问 `/app/o/:organizationId/inbox`。运行 `pnpm test:inbox` 验证真实客服工作台；`INBOX_HEADED=true` 使用本机 Chrome 可见窗口。访客验收使用测试夹具的真实接口，不将其算作 T10 产品界面。验收及使用边界见 [工作台说明](docs/inbox-development.md)。
 
 ## 本地启动
 

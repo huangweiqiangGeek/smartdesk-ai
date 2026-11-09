@@ -698,6 +698,29 @@ try {
   const page = await context.newPage();
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
+  async function expectWorkspace(target, organizationName) {
+    await expect(
+      target.getByRole('heading', { name: organizationName, exact: true }),
+    ).toBeVisible();
+    // Caught setup errors render an alert instead of emitting pageerror.
+    await expect(target.getByRole('alert')).toHaveCount(0);
+    const organizationId = new URL(target.url()).pathname.split('/').at(-1);
+    await expect
+      .poll(
+        async () =>
+          (
+            await db.query(
+              `SELECT count(*)::int AS n FROM presence_connections p
+         JOIN memberships m ON m.id=p.membership_id
+         JOIN users u ON u.id=m.user_id
+         WHERE p.organization_id=$1 AND u.email_normalized='browser@example.test'
+           AND p.disconnected_at IS NULL AND p.updated_at > now()-interval '60 seconds'`,
+              [organizationId],
+            )
+          ).rows[0].n,
+      )
+      .toBeGreaterThan(0);
+  }
   await page.goto(web + '/register');
   await page.getByLabel('显示名').fill('浏览器客服');
   await page.getByLabel('邮箱').fill('browser@example.test');
@@ -718,6 +741,7 @@ try {
     page.getByRole('heading', { name: '浏览器企业', exact: true }),
   ).toBeVisible();
   const firstOrgPath = new URL(page.url()).pathname;
+  await expectWorkspace(page, '浏览器企业');
   await page.screenshot({
     path: resolve(evidence, 'organization-desktop.png'),
     fullPage: true,
@@ -742,19 +766,23 @@ try {
     page.getByRole('heading', { name: '企业甲更新', exact: true }),
   ).toBeVisible();
   const otherTab = await context.newPage();
+  await expectWorkspace(page, '企业甲更新');
   await otherTab.goto(web + firstOrgPath);
   await expect(
     otherTab.getByRole('heading', { name: '浏览器企业', exact: true }),
   ).toBeVisible();
+  await expectWorkspace(otherTab, '浏览器企业');
   await page.reload();
   await expect(
     page.getByRole('heading', { name: '企业甲更新', exact: true }),
   ).toBeVisible();
+  await expectWorkspace(page, '企业甲更新');
   await page.getByRole('link', { name: '切换企业' }).click();
   await page.getByRole('link', { name: /浏览器企业/ }).click();
   await expect(
     page.getByRole('heading', { name: '浏览器企业', exact: true }),
   ).toBeVisible();
+  await expectWorkspace(page, '浏览器企业');
   await otherTab.getByRole('button', { name: '退出登录' }).click();
   await page.reload();
   await expect(page.getByRole('alert')).toContainText('请重新登录');

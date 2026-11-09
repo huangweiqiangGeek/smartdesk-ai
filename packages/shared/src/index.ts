@@ -5,6 +5,9 @@ export interface UserView {
   displayName: string;
   email: string;
 }
+export interface CurrentUserView extends UserView {
+  memberships: { id: string; organizationId: string; role: string }[];
+}
 export interface OrganizationView {
   id: string;
   name: string;
@@ -43,6 +46,14 @@ export interface ConversationEventView {
 export interface Page<T> {
   items: T[];
   nextCursor: string | null;
+}
+export interface ConversationNoteView {
+  id: string;
+  conversationId: string;
+  authorMembershipId: string;
+  clientNoteId: string;
+  content: string;
+  createdAt: string;
 }
 export interface ApiEnvelope<T> {
   data: T;

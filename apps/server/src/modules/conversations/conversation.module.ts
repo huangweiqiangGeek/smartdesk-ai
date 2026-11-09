@@ -29,6 +29,7 @@ class ConversationController {
     'conversations/:id/reopen',
     'conversations/:id/read',
     'conversations/:id/events',
+    'conversations/:id/notes',
   ])
   async handle(@Req() req: Request, @Res() res: Response) {
     const requestId = randomUUID();
@@ -62,6 +63,8 @@ class ConversationController {
         result = await this.service.markRead(r, parts[2]!);
       else if (parts[3] === 'events' && r.method === 'GET')
         result = await this.service.events(r, parts[2]!);
+      else if (parts[3] === 'notes' && ['GET', 'POST'].includes(r.method))
+        result = await this.service.notes(r, parts[2]!);
       else if (
         ['handoff', 'claim', 'assign', 'transfer', 'close', 'reopen'].includes(
           parts[3]!,

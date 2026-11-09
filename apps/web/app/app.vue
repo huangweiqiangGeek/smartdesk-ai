@@ -1,5 +1,12 @@
 <template>
-  <NuxtPage :page-key="(route) => route.fullPath" />
+  <NuxtPage
+    :page-key="
+      (route) =>
+        route.path
+          .match(/^\/app\/o\/[^/]+\/inbox(?:\/|$)/)?.[0]
+          .replace(/\/$/, '') ?? route.fullPath
+    "
+  />
 </template>
 
 <style>

@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import type {
-  MembershipView,
+  CurrentUserView,
   OrganizationView,
   Page,
-  UserView,
 } from '@smartdesk/shared';
 import { computed, onMounted, onBeforeUnmount, ref, watch } from 'vue';
 import { navigateTo, useRoute } from '#app';
@@ -36,7 +35,7 @@ const zone = ref('Asia/Shanghai');
 const busy = ref(false);
 const loading = ref(true);
 const error = ref('');
-const user = ref<UserView | null>(null);
+const user = ref<CurrentUserView | null>(null);
 const organizations = ref<OrganizationView[]>([]);
 const organization = ref<OrganizationView | null>(null);
 const nextCursor = ref<string | null>(null);
@@ -110,12 +109,12 @@ async function load() {
         body: { token: token.value },
       });
       try {
-        user.value = await api<UserView>('/auth/me');
+        user.value = await api<CurrentUserView>('/auth/me');
       } catch {
         user.value = null;
       }
     } else if (!['login', 'register'].includes(props.mode)) {
-      user.value = await api<UserView>('/auth/me');
+      user.value = await api<CurrentUserView>('/auth/me');
       if (props.mode === 'organizations') {
         organizations.value = [];
         nextCursor.value = null;
@@ -123,18 +122,23 @@ async function load() {
       }
       if (props.mode === 'organization') {
         const id = String(route.params.organizationId);
-        const result = await api<
-          OrganizationView & { membership: MembershipView }
-        >(`/organizations/${id}`, {
+        const result = await api<OrganizationView>(`/organizations/${id}`, {
           organizationId: id,
         });
-        organization.value = result;
+        // A004 owns current membership identity; A007 only returns organization details.
+        const membership = user.value.memberships.find(
+          (item) => item.organizationId === id,
+        );
+        if (!membership) {
+          throw new Error('企业身份已变化，请重新加载或选择企业。');
+        }
         support.client().setIdentity({
           kind: 'member',
           userId: user.value.id,
           organizationId: id,
-          membershipId: result.membership.id,
+          membershipId: membership.id,
         });
+        organization.value = result;
       }
     }
   } catch (e) {
@@ -366,8 +370,13 @@ onBeforeUnmount(() => {
             <dt>企业时区</dt>
             <dd>{{ organization.timezone }}</dd>
             <dt>接入状态</dt>
-            <dd>账号与团队基础已就绪，客服接待功能开发中。</dd>
+            <dd>团队工作台已就绪，可处理访客咨询与内部协作。</dd>
           </dl>
+          <NuxtLink
+            :to="`/app/o/${organization.id}/inbox`"
+            class="primary link-button"
+            >打开客服工作台</NuxtLink
+          >
           <NuxtLink to="/app/organizations">切换企业</NuxtLink>
         </template>
         <NuxtLink
