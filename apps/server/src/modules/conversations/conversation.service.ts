@@ -1031,13 +1031,19 @@ export class ConversationService {
           });
           if (
             !d ||
-            (actor.role !== 'admin' && (d.status !== 'enabled' || d.deletedAt))
+            (actor.role !== 'admin' &&
+              (d.status !== 'enabled' ||
+                d.deletedAt ||
+                d.currentVersion?.preparationStatus !== 'ready'))
           )
             return null;
           data = {
             id: d.id,
             version: d.version,
-            preparationStatus: d.currentVersion?.preparationStatus ?? null,
+            preparationStatus:
+              d.currentVersion?.preparationStatus === 'pending'
+                ? 'not_started'
+                : (d.currentVersion?.preparationStatus ?? null),
           };
         } else if (
           event.eventType === 'membership.updated' ||

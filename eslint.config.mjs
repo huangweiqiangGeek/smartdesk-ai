@@ -83,6 +83,8 @@ export default tseslint.config(
       'tests/integration/frontend.mjs',
       'tests/integration/reception.mjs',
       'tests/integration/inbox.mjs',
+      'tests/integration/knowledge.mjs',
+      'tests/integration/knowledge-api.mjs',
     ],
     languageOptions: {
       globals: {

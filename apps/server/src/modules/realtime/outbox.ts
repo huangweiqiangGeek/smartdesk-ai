@@ -95,6 +95,30 @@ export class TaskPublisher {
   }
   async publish(event: OutboxEvent) {
     if (
+      event.eventType === 'knowledge.prepare.requested' &&
+      event.aggregateType === 'knowledge_version'
+    ) {
+      const v = await this.db.knowledgeVersion.findFirst({
+        where: { id: event.aggregateId, organizationId: event.organizationId },
+        include: { document: true },
+      });
+      if (!v) throw new Error('KNOWLEDGE_VERSION_NOT_FOUND');
+      // A delayed retry must not enqueue a replaced version or a newer preparation attempt.
+      if (
+        v.document.deletedAt ||
+        v.document.currentVersionId !== v.id ||
+        v.preparationStatus !== 'pending' ||
+        v.preparationAttempt !== event.aggregateVersion
+      )
+        return;
+      await this.queue.add(
+        'knowledge.prepare.requested',
+        { versionId: v.id },
+        { jobId: `${v.id}-${v.preparationAttempt}` },
+      );
+      return;
+    }
+    if (
       event.eventType !== 'ai.task.requested' ||
       event.aggregateType !== 'ai_task'
     )

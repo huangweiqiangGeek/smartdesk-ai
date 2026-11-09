@@ -4,6 +4,8 @@
 
 T08 已实现 A015—A017/A030—A037，并完成 A008/A014 补偿与 Socket 心跳，实测和兼容细节见 [接待说明](reception-development.md)。
 
+T11 已实现 A043—A051，列表摘要不含正文，准备请求202不代表完成；公开 not_started 映射数据库 pending，currentVersion 另含 preparationRequested/createdAt。配置变化需编辑新版本，详见 [知识管理说明](knowledge-development.md)。
+
 ## 目录导航
 
 - [1 通用合同](#1-通用合同)
@@ -46,7 +48,7 @@ T08 已实现 A015—A017/A030—A037，并完成 A008/A014 补偿与 Socket 心
 | Message | id、conversationId、senderId、senderType、clientMessageId、seq、content、createdAt、conversationVersion；内部 aiTaskId 和 sourceSnapshot 不属于访客 DTO |
 | MessagePage | items、mode、snapshotThroughSeq、windowStartSeq、nextCursor、hasMore；items 始终按 seq 升序 |
 | NoteView | id、conversationId、authorMembershipId、clientNoteId、content、createdAt；仅授权后台 |
-| KnowledgeView | id、type、status、version、currentVersion{id,revision,titleOrQuestion,body,preparationStatus,lastErrorCode?}、updatedAt；成员搜索仅返回 enabled+ready 的允许字段 |
+| KnowledgeSummary / KnowledgeView | id、type、status、version、currentVersion{id,revision,titleOrQuestion,preparationStatus,preparationRequested,createdAt,lastErrorCode?}、updatedAt；详情 KnowledgeView 另含 currentVersion.body；agent仅可读 enabled+ready 当前版本 |
 | AiTaskView | id、scope、operation、status、version、inputRevision、sourceThroughSeq、isCurrent、createdAt、deadlineAt、errorCode?、result?；isCurrent 按当前输入/知识判断，历史成功结果不重执行；仅授权后台；自动状态给访客单独投影 processing/waiting |
 | SourceView | documentId、versionId、chunkId、title、quote、contentHash；按会话或试问所有者授权 |
 | TicketView | id、title、description、customerId、conversationId、ownerMembershipId、needsReassignment、priority、status、version、resolvedAt、createdAt、updatedAt |
@@ -127,7 +129,7 @@ A020/A021 由父网站加载脚本请求，浏览器 Origin 必须匹配允许�
 | A040 | GET /conversations/{id}/message-requests/{clientMessageId} | 原发送者且当前可读 | 无 | Message 或 404 REQUEST_NOT_FOUND | 只查当前身份的请求；404 不证明旧请求永远不会提交 |
 | A041 | GET /conversations/{id}/notes | M 有权；P04 | cursor、limit | NoteView 页 | V 一律拒绝 |
 | A042 | POST /conversations/{id}/notes | R/A；P04 | clientNoteId、content | 201/200 NoteView | closed 默认只读，重开后可新增；不触发 AI |
-| A043 | GET /knowledge | M；P05/收件箱 | q?、type?、status?、cursor、limit | KnowledgeView 摘要页 | agent 只能 enabled+ready，不能过滤出草稿 |
+| A043 | GET /knowledge | M；P05/收件箱 | q?、type?、status?、cursor、limit | KnowledgeSummary 页 | agent 只能 enabled+ready，不能过滤出草稿 |
 | A044 | POST /knowledge | A；P05 | type、titleOrQuestion、body | 201 KnowledgeView（draft） | 长度/空白验证 |
 | A045 | GET /knowledge/{id} | A；agent 限已启用当前版本 | 无 | KnowledgeView | 不泄漏停用/删除正文 |
 | A046 | PATCH /knowledge/{id} | A；P05 | expectedVersion、titleOrQuestion、body | 新 KnowledgeView | 新不可变版本；退出启用集合；旧候选失效 |

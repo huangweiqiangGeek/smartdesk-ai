@@ -1,6 +1,6 @@
 # SmartDesk AI V1 开发任务与验收清单
 
-> 2026-11-09：T01 工程初始化与本地验收已通过，见 [T01 验证](local-development.md)；T02 数据模型与迁移验收已通过，见 [数据库验收](database-development.md)；T03 身份 API 与 P01/P02 实测已通过，见 [身份验收](identity-development.md)；T04 跨站访客身份和 P03 外壳通过 12 组本地真实场景，见 [接入验收](widget-development.md)。T05 消息事务通过 15 组归档验收，见 [消息验收](messages-development.md)。T06 实时投递通过 15 组隔离验收，默认配置100条浏览器消息p95=1195ms，见 [实时验收](realtime-development.md)。T07 前端连接通过 19 项客户端单测与 10 组真实浏览器场景，见 [前端连接验收](frontend-development.md)。T08 接待状态与在线通过 13 组真实场景及 11 接口归档验证，见 [接待验收](reception-development.md)。T09 工作台通过 11 组可见 Chrome 场景，见 [工作台验收](inbox-development.md)。T10 访客聊天及演示通过 22 组接入与聊天验收，见 [访客聊天验收](visitor-chat-development.md)。T11—T26 待开始。依据 [PRD](prd-v1.md) 和 [技术方案](technical-plan-v1.md)，逐项配有 [Codex 提示词](codex-prompts-v1.md)。
+> 2026-11-09：T01 工程初始化与本地验收已通过，见 [T01 验证](local-development.md)；T02 数据模型与迁移验收已通过，见 [数据库验收](database-development.md)；T03 身份 API 与 P01/P02 实测已通过，见 [身份验收](identity-development.md)；T04 跨站访客身份和 P03 外壳通过 12 组本地真实场景，见 [接入验收](widget-development.md)。T05 消息事务通过 15 组归档验收，见 [消息验收](messages-development.md)。T06 实时投递通过 15 组隔离验收，默认配置100条浏览器消息p95=1195ms，见 [实时验收](realtime-development.md)。T07 前端连接通过 19 项客户端单测与 10 组真实浏览器场景，见 [前端连接验收](frontend-development.md)。T08 接待状态与在线通过 13 组真实场景及 11 接口归档验证，见 [接待验收](reception-development.md)。T09 工作台通过 11 组可见 Chrome 场景，见 [工作台验收](inbox-development.md)。T10 访客聊天及演示通过 22 组接入与聊天验收，见 [访客聊天验收](visitor-chat-development.md)。T11 知识接口通过12组隔离验收，见 [知识验收](knowledge-development.md)。T12—T26 待开始。依据 [PRD](prd-v1.md) 和 [技术方案](technical-plan-v1.md)，逐项配有 [Codex 提示词](codex-prompts-v1.md)。
 
 ## 目录导航
 
@@ -142,6 +142,8 @@
 验收：AT09/AT13/AT19/AT22/AT27；无邮箱也可保存，已结束不接受新消息；真实客服双窗口交接可走通；没有 AI 前清楚显示人工路径，不能用预置回复冒充自动接待。
 
 ### T11 知识 CRUD、版本与启停
+
+状态：2026-11-09 已实现 A043—A051，12组真实隔离验收通过；准备消费者与P05仍分别归T13/T16。范围与证据见 [知识管理验收](knowledge-development.md)。
 
 节点 N02；A043—A051。交付：两类输入、不可变正文版本、业务/准备状态、修改撤出可用集合、准备触发、启停/删除、knowledgeRevision 与审计。
 

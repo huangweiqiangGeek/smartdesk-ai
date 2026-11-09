@@ -2,7 +2,7 @@
 
 面向 SaaS 和服务型网站的多租户智能客服系统，以 AI 优先接待、必要时转人工为核心流程，支持可靠消息收发、团队协作与工单跟进。
 
-当前状态：T01—T10 已实现本地功能。已有四个应用入口、真实 PostgreSQL+pgvector/Redis、24 个业务实体与数据库约束，账号/企业/成员/邀请和跨站访客身份可用。T05 提供原子首消息、seq、幂等与授权历史 API；T06 提供 Socket 与 Outbox 实时投递；T07 提供统一前端客户端、连续水位恢复及草稿隔离；T08 提供统一接待状态和在线心跳；T09 提供三栏客服工作台、授权未读、公开消息与独立内部备注；T10 提供真实访客聊天与合成 SaaS 演示。P09 管理界面归 T19，AI 辅助尚未接入。见 [数据库验收](docs/database-development.md)、[身份验收](docs/identity-development.md)、[跨站接入验收](docs/widget-development.md)、[消息验收](docs/messages-development.md)、[实时验收](docs/realtime-development.md)、[前端连接验收](docs/frontend-development.md)、[接待验收](docs/reception-development.md)、[工作台验收](docs/inbox-development.md) 与 [访客聊天验收](docs/visitor-chat-development.md)。八个模块和五条规则见 [V1 PRD](docs/prd-v1.md)，T11—T26 按 [任务清单](docs/development-tasks-v1.md) 开发。
+当前状态：T01—T11 已实现本地功能。已有四个应用入口、真实 PostgreSQL+pgvector/Redis、24 个业务实体与数据库约束，账号/企业/成员/邀请和跨站访客身份可用。T05 提供原子首消息、seq、幂等与授权历史 API；T06 提供 Socket 与 Outbox 实时投递；T07 提供统一前端客户端、连续水位恢复及草稿隔离；T08 提供统一接待状态和在线心跳；T09 提供三栏客服工作台、授权未读、公开消息与独立内部备注；T10 提供真实访客聊天与合成 SaaS 演示。T11 提供知识 CRUD、版本与启停 API，见 [知识管理验收](docs/knowledge-development.md)。知识准备消费者归 T13、P05 归 T16；P09 管理界面归 T19，AI 辅助尚未接入。见 [数据库验收](docs/database-development.md)、[身份验收](docs/identity-development.md)、[跨站接入验收](docs/widget-development.md)、[消息验收](docs/messages-development.md)、[实时验收](docs/realtime-development.md)、[前端连接验收](docs/frontend-development.md)、[接待验收](docs/reception-development.md)、[工作台验收](docs/inbox-development.md) 与 [访客聊天验收](docs/visitor-chat-development.md)。八个模块和五条规则见 [V1 PRD](docs/prd-v1.md)，T12—T26 按 [任务清单](docs/development-tasks-v1.md) 开发。
 
 开发前从 [AGENTS.md](AGENTS.md) 按任务读取 [docs 开发规范](docs/README.md)；工作区上下文见 [DevCodex Profile](../.devcodex/smartdesk-ai/profile/README.md)。
 

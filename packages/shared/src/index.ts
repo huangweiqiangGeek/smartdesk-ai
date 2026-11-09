@@ -148,3 +148,28 @@ export interface SubscriptionSnapshot {
   conversationVersion: number;
   snapshotThroughSeq: number;
 }
+
+export type KnowledgeType = 'faq' | 'text';
+export type KnowledgeStatus = 'draft' | 'enabled' | 'disabled';
+export type PreparationStatus =
+  'not_started' | 'processing' | 'ready' | 'failed';
+export interface KnowledgeVersionMetadata {
+  id: string;
+  revision: number;
+  titleOrQuestion: string;
+  preparationStatus: PreparationStatus;
+  preparationRequested: boolean;
+  lastErrorCode?: string;
+  createdAt: string;
+}
+export interface KnowledgeSummary {
+  id: string;
+  type: KnowledgeType;
+  status: KnowledgeStatus;
+  version: number;
+  currentVersion: KnowledgeVersionMetadata;
+  updatedAt: string;
+}
+export interface KnowledgeView extends KnowledgeSummary {
+  currentVersion: KnowledgeVersionMetadata & { body: string };
+}
