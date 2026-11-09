@@ -1,6 +1,6 @@
 # SmartDesk AI
 
-AI 智能客服 SaaS，用于展示 AI 全栈工程师在多租户、权限、实时通信、消息可靠性及商业产品交付方面的能力。
+面向 SaaS 和服务型网站的多租户智能客服系统，以 AI 优先接待、必要时转人工为核心流程，支持可靠消息收发、团队协作与工单跟进。
 
 当前状态：T01—T08 已通过本地功能验收。已有四个应用入口、真实 PostgreSQL+pgvector/Redis、24 个业务实体与数据库约束，账号/企业/成员/邀请和跨站访客身份可用。T05 提供原子首消息、seq、幂等与授权历史 API；T06 提供 Socket 与 Outbox 实时投递、队列生产和故障恢复；T07 提供统一前端客户端、消息归并、连续水位恢复及草稿隔离；T08 提供统一接待状态和在线心跳。聊天界面归 T09/T10，P09 管理界面归 T19。见 [数据库验收](docs/database-development.md)、[身份验收](docs/identity-development.md)、[跨站接入验收](docs/widget-development.md)、[消息验收](docs/messages-development.md)、[实时验收](docs/realtime-development.md)、[前端连接验收](docs/frontend-development.md) 与 [接待验收](docs/reception-development.md)。八个模块和五条规则见 [V1 PRD](docs/prd-v1.md)，T09—T26 按 [任务清单](docs/development-tasks-v1.md) 开发。
 
@@ -91,6 +91,6 @@ pnpm db:generate
 
 详细执行顺序、依赖与验收以 [开发任务清单](docs/development-tasks-v1.md) 为准：先可靠人工链路，再知识与 AI，再其余业务和系统验收。完整 V1 初估 166—262 小时，按每天 3—4 小时约 42—88 个投入日；首个里程碑后按实际速度重估，不沿用原三周建议作为承诺。
 
-## 项目来源
+## 开发方式
 
-整理自 [个人项目建议](chatgpt-conversation://6aed3482-add8-83e8-9e43-941478c38b9c) 中的最新方案。整体目标为 AI 全栈工程师求职作品集，采用 AI 主导编码、本人负责产品决策和最终验收的方式。
+项目采用 AI 辅助开发，由维护者负责产品决策、代码审查和最终验收。产品范围以 [V1 PRD](docs/prd-v1.md) 为准，实施进度和验证结果见 [开发任务清单](docs/development-tasks-v1.md) 及对应验收文档。
