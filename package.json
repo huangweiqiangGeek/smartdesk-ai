@@ -1,0 +1,53 @@
+{
+  "name": "smartdesk-ai",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.14.0",
+  "engines": {
+    "node": ">=22.22.3 <23",
+    "pnpm": "12.14.0"
+  },
+  "scripts": {
+    "dev:web": "pnpm --filter @smartdesk/web dev",
+    "dev:api": "pnpm --filter @smartdesk/server dev",
+    "dev:worker": "pnpm --filter @smartdesk/server dev:worker",
+    "dev:ai": "node scripts/uv.mjs run --frozen uvicorn app.main:app --host 127.0.0.1 --port 8100",
+    "ai:sync": "node scripts/uv.mjs sync --frozen",
+    "lint": "eslint apps packages tests scripts *.ts *.mjs --max-warnings 0 && node scripts/uv.mjs run --frozen ruff check .",
+    "format:check": "prettier --check . && node scripts/uv.mjs run --frozen ruff format --check .",
+    "typecheck": "pnpm --filter @smartdesk/shared build && pnpm -r typecheck && node scripts/uv.mjs run --frozen mypy app",
+    "test": "vitest run && node scripts/uv.mjs run --frozen pytest",
+    "test:integration": "pnpm --filter @smartdesk/server check:dependencies",
+    "test:e2e": "playwright test",
+    "build": "pnpm -r build",
+    "db:validate": "prisma validate",
+    "db:generate": "prisma generate",
+    "test:database": "pnpm db:generate && pnpm --filter @smartdesk/server build && node tests/integration/database.mjs",
+    "test:identity": "pnpm build && node tests/integration/identity.mjs",
+    "test:widget": "pnpm build && node tests/integration/widget.mjs",
+    "test:messages": "pnpm --filter @smartdesk/shared build && pnpm --filter @smartdesk/server build && node tests/integration/messages.mjs",
+    "test:realtime": "pnpm --filter @smartdesk/shared build && pnpm --filter @smartdesk/server build && node tests/integration/realtime.mjs",
+    "test:frontend": "pnpm --filter @smartdesk/shared build && pnpm --filter @smartdesk/server build && node tests/integration/frontend.mjs",
+    "test:reception": "pnpm --filter @smartdesk/shared build && pnpm --filter @smartdesk/server build && node tests/integration/reception.mjs",
+    "db:seed": "node scripts/seed.mjs",
+    "db:migrate": "prisma migrate deploy",
+    "deps:up": "docker compose up -d --wait",
+    "deps:down": "docker compose down",
+    "check:dependencies": "pnpm --filter @smartdesk/server check:dependencies"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.65.0",
+    "@types/node": "22.20.5",
+    "eslint": "10.14.0",
+    "eslint-plugin-vue": "10.12.0",
+    "prettier": "3.9.10",
+    "prisma": "7.10.1",
+    "dotenv": "18.0.9",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.72.1",
+    "vitest": "4.1.12",
+    "vue-eslint-parser": "10.4.1"
+  }
+}

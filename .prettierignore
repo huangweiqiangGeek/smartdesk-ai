@@ -1,0 +1,17 @@
+pnpm-lock.yaml
+services/ai-service/uv.lock
+node_modules/
+.tools/
+dist/
+.nuxt/
+.output/
+services/ai-service/.venv/
+services/ai-service/.mypy_cache/
+services/ai-service/.ruff_cache/
+services/ai-service/.pytest_cache/
+docs/
+AGENTS.md
+README.md
+apps/server/src/generated/
+test-results/
+playwright-report/

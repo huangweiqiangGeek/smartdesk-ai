@@ -1,0 +1,22 @@
+{
+  "name": "@smartdesk/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nuxt dev --host 127.0.0.1 --port 3100",
+    "build": "nuxt build",
+    "typecheck": "nuxt typecheck",
+    "prepare": "nuxt prepare"
+  },
+  "dependencies": {
+    "@smartdesk/shared": "workspace:*",
+    "nuxt": "4.6.4",
+    "socket.io-client": "4.8.4",
+    "vue": "3.5.44"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "vue-tsc": "3.3.14"
+  }
+}

@@ -1,0 +1,33 @@
+name: smartdesk-ai
+services:
+  postgres:
+    image: pgvector/pgvector:0.8.7-pg17-trixie@sha256:01215e09bd4bd582d20230e025b6c971deeeffee49ceef1aae167e839cb62a7e
+    environment:
+      POSTGRES_USER: smartdesk
+      POSTGRES_PASSWORD: smartdesk_local
+      POSTGRES_DB: smartdesk
+    ports:
+      - '127.0.0.1:55432:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./database/init/001-vector.sql:/docker-entrypoint-initdb.d/001-vector.sql:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U smartdesk -d smartdesk']
+      interval: 5s
+      timeout: 3s
+      retries: 12
+  redis:
+    image: redis:8.8.4-alpine3.23@sha256:c027ae0f677dcf73d74038256f5b88c9ba7b11ccbfae97e96a9f091208d36125
+    ports:
+      - '127.0.0.1:56379:6379'
+    volumes:
+      - redis-data:/data
+    command: ['redis-server', '--appendonly', 'yes']
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 12
+volumes:
+  postgres-data:
+  redis-data:

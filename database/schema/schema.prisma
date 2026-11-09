@@ -1,0 +1,605 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../../apps/server/src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// T02: SQL-only CHECKs, partial uniqueness and integrity triggers live in migrations.
+
+model User {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  emailNormalized String @unique @map("email_normalized")
+  displayName String @map("display_name")
+  passwordHash String @map("password_hash")
+  status String @default("active")
+  createdAt DateTime @default(now()) @db.Timestamptz(6) @map("created_at")
+  updatedAt DateTime @updatedAt @db.Timestamptz(6) @map("updated_at")
+  AuthSession_user AuthSession[] @relation("AuthSession_user")
+  Membership_user Membership[] @relation("Membership_user")
+  Invitation_acceptedByUser Invitation[] @relation("Invitation_acceptedByUser")
+
+
+  @@map("users")
+}
+
+model AuthSession {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId String @db.Uuid @map("user_id")
+  tokenHash String @unique @map("token_hash")
+  expiresAt DateTime @db.Timestamptz(6) @map("expires_at")
+  revokedAt DateTime? @db.Timestamptz(6) @map("revoked_at")
+  lastSeenAt DateTime @default(now()) @db.Timestamptz(6) @map("last_seen_at")
+  createdAt DateTime @default(now()) @db.Timestamptz(6) @map("created_at")
+  updatedAt DateTime @updatedAt @db.Timestamptz(6) @map("updated_at")
+  user User @relation("AuthSession_user", fields: [userId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  PresenceConnection_authSession PresenceConnection[] @relation("PresenceConnection_authSession")
+
+  @@index([userId, revokedAt])
+  @@map("auth_sessions")
+}
+
+model Organization {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name String
+  timezone String @default("Asia/Shanghai")
+  aiEnabled Boolean @default(false) @map("ai_enabled")
+  aiConfigRevision Int @default(0) @map("ai_config_revision")
+  knowledgeRevision Int @default(0) @map("knowledge_revision")
+  authorizationRevision Int @default(0) @map("authorization_revision")
+  aiSenderId String @default(dbgenerated("gen_random_uuid()")) @db.Uuid @map("ai_sender_id")
+  systemSenderId String @default(dbgenerated("gen_random_uuid()")) @db.Uuid @map("system_sender_id")
+  version Int @default(0)
+  createdAt DateTime @default(now()) @db.Timestamptz(6) @map("created_at")
+  updatedAt DateTime @updatedAt @db.Timestamptz(6) @map("updated_at")
+  Membership_organization Membership[] @relation("Membership_organization")
+  Invitation_organization Invitation[] @relation("Invitation_organization")
+  WidgetConfig_organization WidgetConfig[] @relation("WidgetConfig_organization")
+  PresenceConnection_organization PresenceConnection[] @relation("PresenceConnection_organization")
+  Customer_organization Customer[] @relation("Customer_organization")
+  VisitorSession_organization VisitorSession[] @relation("VisitorSession_organization")
+  Conversation_organization Conversation[] @relation("Conversation_organization")
+  Message_organization Message[] @relation("Message_organization")
+  ConversationNote_organization ConversationNote[] @relation("ConversationNote_organization")
+  ConversationRead_organization ConversationRead[] @relation("ConversationRead_organization")
+  ConversationEvent_organization ConversationEvent[] @relation("ConversationEvent_organization")
+  KnowledgeDocument_organization KnowledgeDocument[] @relation("KnowledgeDocument_organization")
+  KnowledgeVersion_organization KnowledgeVersion[] @relation("KnowledgeVersion_organization")
+  KnowledgeChunk_organization KnowledgeChunk[] @relation("KnowledgeChunk_organization")
+  AiTask_organization AiTask[] @relation("AiTask_organization")
+  AiResult_organization AiResult[] @relation("AiResult_organization")
+  Ticket_organization Ticket[] @relation("Ticket_organization")
+  TicketEvent_organization TicketEvent[] @relation("TicketEvent_organization")
+  OutboxEvent_organization OutboxEvent[] @relation("OutboxEvent_organization")
+  OperationReceipt_organization OperationReceipt[] @relation("OperationReceipt_organization")
+  AuditEvent_organization AuditEvent[] @relation("AuditEvent_organization")
+
+
+  @@map("organizations")
+}
+
+model Membership {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String @db.Uuid @map("organization_id")
+  userId String @db.Uuid @map("user_id")
+  role String
+  status String @default("active")
+  availability String @default("away")
+  readingLanguage String @default("zh") @map("reading_language")
+  version Int @default(0)
+  createdAt DateTime @default(now()) @db.Timestamptz(6) @map("created_at")
+  updatedAt DateTime @updatedAt @db.Timestamptz(6) @map("updated_at")
+  organization Organization @relation("Membership_organization", fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  user User @relation("Membership_user", fields: [userId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  Invitation_createdBy Invitation[] @relation("Invitation_createdBy")
+  PresenceConnection_membership PresenceConnection[] @relation("PresenceConnection_membership")
+  Conversation_assignee Conversation[] @relation("Conversation_assignee")
+  Conversation_firstHumanReplyMember Conversation[] @relation("Conversation_firstHumanReplyMember")
+  Message_senderMember Message[] @relation("Message_senderMember")
+  Ticket_owner Ticket[] @relation("Ticket_owner")
+  AiTask_requester AiTask[] @relation("AiTask_requester")
+  AuditEvent_actor AuditEvent[] @relation("AuditEvent_actor")
+  ConversationNote_author ConversationNote[] @relation("ConversationNote_author")
+  ConversationRead_member ConversationRead[] @relation("ConversationRead_member")
+  ConversationEvent_previousAssignee ConversationEvent[] @relation("ConversationEvent_previousAssignee")
+  ConversationEvent_nextAssignee ConversationEvent[] @relation("ConversationEvent_nextAssignee")
+  KnowledgeDocument_createdBy KnowledgeDocument[] @relation("KnowledgeDocument_createdBy")
+  KnowledgeVersion_createdBy KnowledgeVersion[] @relation("KnowledgeVersion_createdBy")
+  Ticket_creator Ticket[] @relation("Ticket_creator")
+  TicketEvent_actor TicketEvent[] @relation("TicketEvent_actor")
+
+  @@unique([organizationId, id])
+  @@unique([organizationId, userId])
+  @@index([organizationId, role, status])
+  @@map("memberships")
+}
+
+model Invitation {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String @db.Uuid @map("organization_id")
+  tokenHash String @unique @map("token_hash")
+  role String
+  createdByMembershipId String @db.Uuid @map("created_by_membership_id")
+  expiresAt DateTime @db.Timestamptz(6) @map("expires_at")
+  acceptedByUserId String? @db.Uuid @map("accepted_by_user_id")
+  acceptedAt DateTime? @db.Timestamptz(6) @map("accepted_at")
+  revokedAt DateTime? @db.Timestamptz(6) @map("revoked_at")
+  createdAt DateTime @default(now()) @db.Timestamptz(6) @map("created_at")
+  updatedAt DateTime @updatedAt @db.Timestamptz(6) @map("updated_at")
+  organization Organization @relation("Invitation_organization", fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  acceptedByUser User? @relation("Invitation_acceptedByUser", fields: [acceptedByUserId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  createdBy Membership @relation("Invitation_createdBy", fields: [organizationId, createdByMembershipId], references: [organizationId, id], onDelete: Restrict, onUpdate: NoAction)
+
+  @@unique([organizationId, id])
+  @@map("invitations")
+}
+
+model WidgetConfig {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String @db.Uuid @map("organization_id")
+  publicKey String @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid @map("public_key")
+  allowedOrigins Json @default("[]") @map("allowed_origins")
+  welcomeText String @default("") @map("welcome_text")
+  defaultLanguage String @default("zh") @map("default_language")
+  enabled Boolean @default(false)
+  version Int @default(0)
+  createdAt DateTime @default(now()) @db.Timestamptz(6) @map("created_at")
+  updatedAt DateTime @updatedAt @db.Timestamptz(6) @map("updated_at")
+  organization Organization @relation("WidgetConfig_organization", fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  VisitorSession_widgetConfig VisitorSession[] @relation("VisitorSession_widgetConfig")
+
+  @@unique([organizationId, id])
+  @@unique([organizationId])
+  @@map("widget_configs")
+}
+
+model PresenceConnection {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String @db.Uuid @map("organization_id")
+  membershipId String @db.Uuid @map("membership_id")
+  authSessionId String @db.Uuid @map("auth_session_id")
+  transport String
+  socketId String? @map("socket_id")
+  lastSeenAt DateTime @default(now()) @db.Timestamptz(6) @map("last_seen_at")
+  disconnectedAt DateTime? @db.Timestamptz(6) @map("disconnected_at")
+  createdAt DateTime @default(now()) @db.Timestamptz(6) @map("created_at")
+  updatedAt DateTime @updatedAt @db.Timestamptz(6) @map("updated_at")
+  organization Organization @relation("PresenceConnection_organization", fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  membership Membership @relation("PresenceConnection_membership", fields: [organizationId, membershipId], references: [organizationId, id], onDelete: Restrict, onUpdate: NoAction)
+  authSession AuthSession @relation("PresenceConnection_authSession", fields: [authSessionId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+
+  @@unique([organizationId, id])
+  @@unique([organizationId, socketId])
+  @@index([organizationId, membershipId, lastSeenAt])
+  @@map("presence_connections")
+}
+
+model Customer {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String @db.Uuid @map("organization_id")
+  name String?
+  email String?
+  emailNormalized String? @map("email_normalized")
+  preferredLanguage String @default("zh") @map("preferred_language")
+  internalNotes String? @map("internal_notes")
+  version Int @default(0)
+  createdAt DateTime @default(now()) @db.Timestamptz(6) @map("created_at")
+  updatedAt DateTime @updatedAt @db.Timestamptz(6) @map("updated_at")
+  organization Organization @relation("Customer_organization", fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  VisitorSession_customer VisitorSession[] @relation("VisitorSession_customer")
+  Conversation_customer Conversation[] @relation("Conversation_customer")
+  Message_senderCustomer Message[] @relation("Message_senderCustomer")
+  Ticket_customer Ticket[] @relation("Ticket_customer")
+
+  @@unique([organizationId, id])
+  @@index([organizationId, name])
+  @@index([organizationId, emailNormalized])
+  @@map("customers")
+}
+
+model VisitorSession {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String @db.Uuid @map("organization_id")
+  customerId String @db.Uuid @map("customer_id")
+  widgetConfigId String @db.Uuid @map("widget_config_id")
+  parentOrigin String @map("parent_origin")
+  tokenHash String @unique @map("token_hash")
+  expiresAt DateTime @db.Timestamptz(6) @map("expires_at")
+  revokedAt DateTime? @db.Timestamptz(6) @map("revoked_at")
+  createdAt DateTime @default(now()) @db.Timestamptz(6) @map("created_at")
+  updatedAt DateTime @updatedAt @db.Timestamptz(6) @map("updated_at")
+  organization Organization @relation("VisitorSession_organization", fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  customer Customer @relation("VisitorSession_customer", fields: [organizationId, customerId], references: [organizationId, id], onDelete: Restrict, onUpdate: NoAction)
+  widgetConfig WidgetConfig @relation("VisitorSession_widgetConfig", fields: [organizationId, widgetConfigId], references: [organizationId, id], onDelete: Restrict, onUpdate: NoAction)
+  Conversation_visitorSession Conversation[] @relation("Conversation_visitorSession")
+
+  @@unique([organizationId, id])
+  @@unique([organizationId, id, customerId])
+  @@map("visitor_sessions")
+}
+
+model Conversation {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String @db.Uuid @map("organization_id")
+  customerId String @db.Uuid @map("customer_id")
+  createdByVisitorSessionId String @db.Uuid @map("created_by_visitor_session_id")
+  clientConversationId String @db.Uuid @map("client_conversation_id")
+  status String @default("waiting_human")
+  assignedMembershipId String? @db.Uuid @map("assigned_membership_id")
+  version Int @default(0)
+  lastSeq Int @default(0) @map("last_seq")
+  lastVisitorSeq Int @default(0) @map("last_visitor_seq")
+  inputRevision Int @default(0) @map("input_revision")
+  receptionEpoch Int @default(0) @map("reception_epoch")
+  clarificationPending Boolean @default(false) @map("clarification_pending")
+  activeAiTaskId String? @db.Uuid @map("active_ai_task_id")
+  enteredAiAt DateTime? @db.Timestamptz(6) @map("entered_ai_at")
+  firstHandoffAt DateTime? @db.Timestamptz(6) @map("first_handoff_at")
+  firstHandoffReason String? @map("first_handoff_reason")
+  firstHumanReplyAt DateTime? @db.Timestamptz(6) @map("first_human_reply_at")
+  firstHumanReplyMembershipId String? @db.Uuid @map("first_human_reply_membership_id")
+  closedAt DateTime? @db.Timestamptz(6) @map("closed_at")
+  resolution String?
+  createdAt DateTime @default(now()) @db.Timestamptz(6) @map("created_at")
+  updatedAt DateTime @updatedAt @db.Timestamptz(6) @map("updated_at")
+  organization Organization @relation("Conversation_organization", fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  customer Customer @relation("Conversation_customer", fields: [organizationId, customerId], references: [organizationId, id], onDelete: Restrict, onUpdate: NoAction)
+  visitorSession VisitorSession @relation("Conversation_visitorSession", fields: [organizationId, createdByVisitorSessionId, customerId], references: [organizationId, id, customerId], onDelete: Restrict, onUpdate: NoAction)
+  assignee Membership? @relation("Conversation_assignee", fields: [organizationId, assignedMembershipId], references: [organizationId, id], onDelete: Restrict, onUpdate: NoAction)
+  firstHumanReplyMember Membership? @relation("Conversation_firstHumanReplyMember", fields: [organizationId, firstHumanReplyMembershipId], references: [organizationId, id], onDelete: Restrict, onUpdate: NoAction)
+  Message_conversation Message[] @relation("Message_conversation")
+  ConversationNote_conversation ConversationNote[] @relation("ConversationNote_conversation")
+  ConversationRead_conversation ConversationRead[] @relation("ConversationRead_conversation")
+  ConversationEvent_conversation ConversationEvent[] @relation("ConversationEvent_conversation")
+  Message_senderConversation Message[] @relation("Message_senderConversation")
+  AiTask_conversation AiTask[] @relation("AiTask_conversation")
+  activeAiTask AiTask? @relation("Conversation_activeAiTask", fields: [organizationId, id, activeAiTaskId], references: [organizationId, conversationId, id], onDelete: Restrict, onUpdate: NoAction)
+  Ticket_conversation Ticket[] @relation("Ticket_conversation")
+
+  @@unique([organizationId, id])
+  @@unique([organizationId, id, customerId])
+  @@unique([organizationId, createdByVisitorSessionId, clientConversationId], map: "conversations_client_key")
+  @@index([organizationId, status, assignedMembershipId, updatedAt, id], map: "conversations_inbox_idx")
+  @@index([organizationId, customerId, createdAt, id])
+  @@map("conversations")
+}
+
+model Message {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String @db.Uuid @map("organization_id")
+  conversationId String @db.Uuid @map("conversation_id")
+  senderId String @db.Uuid @map("sender_id")
+  senderType String @map("sender_type")
+  senderMembershipId String? @db.Uuid @map("sender_membership_id")
+  senderCustomerId String? @db.Uuid @map("sender_customer_id")
+  clientMessageId String @db.Uuid @map("client_message_id")
+  seq Int
+  content String
+  contentHash String @map("content_hash")
+  aiTaskId String? @unique @db.Uuid @map("ai_task_id")
+  conversationVersion Int @default(0) @map("conversation_version")
+  createdAt DateTime @default(now()) @db.Timestamptz(6) @map("created_at")
+  organization Organization @relation("Message_organization", fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  senderMember Membership? @relation("Message_senderMember", fields: [organizationId, senderMembershipId], references: [organizationId, id], onDelete: Restrict, onUpdate: NoAction)
+  conversation Conversation @relation("Message_conversation", fields: [organizationId, conversationId], references: [organizationId, id], onDelete: Restrict, onUpdate: NoAction)
+  senderConversation Conversation? @relation("Message_senderConversation", fields: [organizationId, conversationId, senderCustomerId], references: [organizationId, id, customerId], onDelete: Restrict, onUpdate: NoAction)
+  senderCustomer Customer? @relation("Message_senderCustomer", fields: [organizationId, senderCustomerId], references: [organizationId, id], onDelete: Restrict, onUpdate: NoAction)
+  aiTask AiTask? @relation("Message_aiTask", fields: [organizationId, conversationId, aiTaskId], references: [organizationId, conversationId, id], onDelete: Restrict, onUpdate: NoAction)
+
+  @@unique([organizationId, id])
+  @@unique([organizationId, conversationId, seq])
+  @@unique([organizationId, conversationId, senderId, clientMessageId], map: "messages_idempotency_key")
+  @@map("messages")
+}
+
+model ConversationNote {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String @db.Uuid @map("organization_id")
+  conversationId String @db.Uuid @map("conversation_id")
+  authorMembershipId String @db.Uuid @map("author_membership_id")
+  clientNoteId String @db.Uuid @map("client_note_id")
+  content String
+  createdAt DateTime @default(now()) @db.Timestamptz(6) @map("created_at")
+  organization Organization @relation("ConversationNote_organization", fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  conversation Conversation @relation("ConversationNote_conversation", fields: [organizationId, conversationId], references: [organizationId, id], onDelete: Restrict, onUpdate: NoAction)
+  author Membership @relation("ConversationNote_author", fields: [organizationId, authorMembershipId], references: [organizationId, id], onDelete: Restrict, onUpdate: NoAction)
+
+  @@unique([organizationId, id])
+  @@unique([organizationId, conversationId, authorMembershipId, clientNoteId], map: "notes_idempotency_key")
+  @@map("conversation_notes")
+}
+
+model ConversationRead {
+  organizationId String @db.Uuid @map("organization_id")
+  conversationId String @db.Uuid @map("conversation_id")
+  membershipId String @db.Uuid @map("membership_id")
+  lastReadSeq Int @default(0) @map("last_read_seq")
+  createdAt DateTime @default(now()) @db.Timestamptz(6) @map("created_at")
+  updatedAt DateTime @updatedAt @db.Timestamptz(6) @map("updated_at")
+  organization Organization @relation("ConversationRead_organization", fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  conversation Conversation @relation("ConversationRead_conversation", fields: [organizationId, conversationId], references: [organizationId, id], onDelete: Restrict, onUpdate: NoAction)
+  member Membership @relation("ConversationRead_member", fields: [organizationId, membershipId], references: [organizationId, id], onDelete: Restrict, onUpdate: NoAction)
+
+  @@id([organizationId, conversationId, membershipId])
+  @@map("conversation_reads")
+}
+
+model ConversationEvent {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String @db.Uuid @map("organization_id")
+  conversationId String @db.Uuid @map("conversation_id")
+  type String
+  actorType String? @map("actor_type")
+  actorId String? @db.Uuid @map("actor_id")
+  commandId String @db.Uuid @map("command_id")
+  fromStatus String? @map("from_status")
+  toStatus String? @map("to_status")
+  fromAssignee String? @db.Uuid @map("from_assignee")
+  toAssignee String? @db.Uuid @map("to_assignee")
+  reason String?
+  version Int
+  createdAt DateTime @default(now()) @db.Timestamptz(6) @map("created_at")
+  organization Organization @relation("ConversationEvent_organization", fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  conversation Conversation @relation("ConversationEvent_conversation", fields: [organizationId, conversationId], references: [organizationId, id], onDelete: Restrict, onUpdate: NoAction)
+  previousAssignee Membership? @relation("ConversationEvent_previousAssignee", fields: [organizationId, fromAssignee], references: [organizationId, id], onDelete: Restrict, onUpdate: NoAction)
+  nextAssignee Membership? @relation("ConversationEvent_nextAssignee", fields: [organizationId, toAssignee], references: [organizationId, id], onDelete: Restrict, onUpdate: NoAction)
+
+  @@unique([organizationId, id])
+  @@index([organizationId, conversationId, version, type])
+  @@map("conversation_events")
+}
+
+model KnowledgeDocument {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String @db.Uuid @map("organization_id")
+  type String
+  status String @default("draft")
+  currentVersionId String? @db.Uuid @map("current_version_id")
+  version Int @default(0)
+  deletedAt DateTime? @db.Timestamptz(6) @map("deleted_at")
+  createdByMembershipId String @db.Uuid @map("created_by_membership_id")
+  createdAt DateTime @default(now()) @db.Timestamptz(6) @map("created_at")
+  updatedAt DateTime @updatedAt @db.Timestamptz(6) @map("updated_at")
+  organization Organization @relation("KnowledgeDocument_organization", fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  createdBy Membership @relation("KnowledgeDocument_createdBy", fields: [organizationId, createdByMembershipId], references: [organizationId, id], onDelete: Restrict, onUpdate: NoAction)
+  KnowledgeVersion_document KnowledgeVersion[] @relation("KnowledgeVersion_document")
+  currentVersion KnowledgeVersion? @relation("KnowledgeDocument_currentVersion", fields: [organizationId, id, currentVersionId], references: [organizationId, documentId, id], onDelete: Restrict, onUpdate: NoAction)
+
+  @@unique([organizationId, id])
+  @@index([organizationId, status, deletedAt])
+  @@map("knowledge_documents")
+}
+
+model KnowledgeVersion {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String @db.Uuid @map("organization_id")
+  documentId String @db.Uuid @map("document_id")
+  revision Int
+  titleOrQuestion String @map("title_or_question")
+  body String
+  contentHash String @map("content_hash")
+  preparationStatus String @default("pending") @map("preparation_status")
+  embeddingProfileVersion String @map("embedding_profile_version")
+  embeddingModelId String @map("embedding_model_id")
+  embeddingDimensions Int @map("embedding_dimensions")
+  preparedAt DateTime? @db.Timestamptz(6) @map("prepared_at")
+  lastErrorCode String? @map("last_error_code")
+  preparationAttempt Int @default(0) @map("preparation_attempt")
+  leaseToken String? @db.Uuid @map("lease_token")
+  leaseExpiresAt DateTime? @db.Timestamptz(6) @map("lease_expires_at")
+  preparationStartedAt DateTime? @db.Timestamptz(6) @map("preparation_started_at")
+  preparationDeadlineAt DateTime? @db.Timestamptz(6) @map("preparation_deadline_at")
+  createdByMembershipId String @db.Uuid @map("created_by_membership_id")
+  createdAt DateTime @default(now()) @db.Timestamptz(6) @map("created_at")
+  updatedAt DateTime @updatedAt @db.Timestamptz(6) @map("updated_at")
+  organization Organization @relation("KnowledgeVersion_organization", fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  createdBy Membership @relation("KnowledgeVersion_createdBy", fields: [organizationId, createdByMembershipId], references: [organizationId, id], onDelete: Restrict, onUpdate: NoAction)
+  document KnowledgeDocument @relation("KnowledgeVersion_document", fields: [organizationId, documentId], references: [organizationId, id], onDelete: Restrict, onUpdate: NoAction)
+  KnowledgeDocument_currentVersion KnowledgeDocument[] @relation("KnowledgeDocument_currentVersion")
+  KnowledgeChunk_version KnowledgeChunk[] @relation("KnowledgeChunk_version")
+
+  @@unique([organizationId, id])
+  @@unique([organizationId, documentId, revision])
+  @@unique([organizationId, documentId, id])
+  @@map("knowledge_versions")
+}
+
+model KnowledgeChunk {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String @db.Uuid @map("organization_id")
+  documentId String @db.Uuid @map("document_id")
+  versionId String @db.Uuid @map("version_id")
+  ordinal Int
+  text String
+  contentHash String @map("content_hash")
+  embedding Unsupported("vector")
+  embeddingProfileVersion String @map("embedding_profile_version")
+  createdAt DateTime @default(now()) @db.Timestamptz(6) @map("created_at")
+  organization Organization @relation("KnowledgeChunk_organization", fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  version KnowledgeVersion @relation("KnowledgeChunk_version", fields: [organizationId, documentId, versionId], references: [organizationId, documentId, id], onDelete: Restrict, onUpdate: NoAction)
+
+  @@unique([organizationId, id])
+  @@unique([organizationId, versionId, ordinal])
+  @@index([organizationId, versionId])
+  @@map("knowledge_chunks")
+}
+
+model AiTask {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String @db.Uuid @map("organization_id")
+  conversationId String? @db.Uuid @map("conversation_id")
+  scope String
+  operation String
+  requestedByMembershipId String? @db.Uuid @map("requested_by_membership_id")
+  commandId String? @db.Uuid @map("command_id")
+  inputRevision Int @map("input_revision")
+  sourceThroughSeq Int? @map("source_through_seq")
+  inputMessageIds Json @default("[]") @map("input_message_ids")
+  questionText String? @map("question_text")
+  latestVisitorSeq Int? @map("latest_visitor_seq")
+  receptionEpoch Int? @map("reception_epoch")
+  knowledgeRevision Int @map("knowledge_revision")
+  aiConfigRevision Int @map("ai_config_revision")
+  promptVersion String @map("prompt_version")
+  modelId String @map("model_id")
+  targetLanguage String @map("target_language")
+  status String @default("queued")
+  version Int @default(0)
+  deadlineAt DateTime? @db.Timestamptz(6) @map("deadline_at")
+  attemptCount Int @default(0) @map("attempt_count")
+  attempts Json @default("[]")
+  leaseToken String? @db.Uuid @map("lease_token")
+  leaseExpiresAt DateTime? @db.Timestamptz(6) @map("lease_expires_at")
+  startedAt DateTime? @db.Timestamptz(6) @map("started_at")
+  finishedAt DateTime? @db.Timestamptz(6) @map("finished_at")
+  lastErrorCode String? @map("last_error_code")
+  createdAt DateTime @default(now()) @db.Timestamptz(6) @map("created_at")
+  updatedAt DateTime @updatedAt @db.Timestamptz(6) @map("updated_at")
+  organization Organization @relation("AiTask_organization", fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  requester Membership? @relation("AiTask_requester", fields: [organizationId, requestedByMembershipId], references: [organizationId, id], onDelete: Restrict, onUpdate: NoAction)
+  conversation Conversation? @relation("AiTask_conversation", fields: [organizationId, conversationId], references: [organizationId, id], onDelete: Restrict, onUpdate: NoAction)
+  Conversation_activeAiTask Conversation[] @relation("Conversation_activeAiTask")
+  Message_aiTask Message[] @relation("Message_aiTask")
+  AiResult_task AiResult[] @relation("AiResult_task")
+
+  @@unique([organizationId, id])
+  @@unique([organizationId, conversationId, id])
+  @@index([status, deadlineAt])
+  @@map("ai_tasks")
+}
+
+model AiResult {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String @db.Uuid @map("organization_id")
+  taskId String @unique @db.Uuid @map("task_id")
+  resultKind String @map("result_kind")
+  result Json
+  sourceSnapshot Json @map("source_snapshot")
+  modelVersion String @map("model_version")
+  promptVersion String @map("prompt_version")
+  usage Json
+  usageEstimated Boolean @map("usage_estimated")
+  createdAt DateTime @default(now()) @db.Timestamptz(6) @map("created_at")
+  organization Organization @relation("AiResult_organization", fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  task AiTask @relation("AiResult_task", fields: [organizationId, taskId], references: [organizationId, id], onDelete: Restrict, onUpdate: NoAction)
+
+  @@unique([organizationId, id])
+  @@map("ai_results")
+}
+
+model Ticket {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String @db.Uuid @map("organization_id")
+  conversationId String @db.Uuid @map("conversation_id")
+  customerId String @db.Uuid @map("customer_id")
+  title String
+  description String
+  ownerMembershipId String? @db.Uuid @map("owner_membership_id")
+  priority String @default("normal")
+  status String @default("open")
+  version Int @default(0)
+  createdByMembershipId String @db.Uuid @map("created_by_membership_id")
+  createdCommandId String @db.Uuid @map("created_command_id")
+  resolvedAt DateTime? @db.Timestamptz(6) @map("resolved_at")
+  createdAt DateTime @default(now()) @db.Timestamptz(6) @map("created_at")
+  updatedAt DateTime @updatedAt @db.Timestamptz(6) @map("updated_at")
+  organization Organization @relation("Ticket_organization", fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  owner Membership? @relation("Ticket_owner", fields: [organizationId, ownerMembershipId], references: [organizationId, id], onDelete: Restrict, onUpdate: NoAction)
+  conversation Conversation @relation("Ticket_conversation", fields: [organizationId, conversationId, customerId], references: [organizationId, id, customerId], onDelete: Restrict, onUpdate: NoAction)
+  customer Customer @relation("Ticket_customer", fields: [organizationId, customerId], references: [organizationId, id], onDelete: Restrict, onUpdate: NoAction)
+  creator Membership @relation("Ticket_creator", fields: [organizationId, createdByMembershipId], references: [organizationId, id], onDelete: Restrict, onUpdate: NoAction)
+  TicketEvent_ticket TicketEvent[] @relation("TicketEvent_ticket")
+
+  @@unique([organizationId, id])
+  @@unique([organizationId, createdByMembershipId, createdCommandId], map: "tickets_create_key")
+  @@index([organizationId, status, updatedAt, id])
+  @@index([organizationId, ownerMembershipId, updatedAt, id])
+  @@index([organizationId, priority, updatedAt, id])
+  @@map("tickets")
+}
+
+model TicketEvent {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String @db.Uuid @map("organization_id")
+  ticketId String @db.Uuid @map("ticket_id")
+  actorMembershipId String @db.Uuid @map("actor_membership_id")
+  commandId String @db.Uuid @map("command_id")
+  type String
+  fromStatus String? @map("from_status")
+  toStatus String? @map("to_status")
+  content String?
+  reason String?
+  version Int
+  createdAt DateTime @default(now()) @db.Timestamptz(6) @map("created_at")
+  organization Organization @relation("TicketEvent_organization", fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  ticket Ticket @relation("TicketEvent_ticket", fields: [organizationId, ticketId], references: [organizationId, id], onDelete: Restrict, onUpdate: NoAction)
+  actor Membership @relation("TicketEvent_actor", fields: [organizationId, actorMembershipId], references: [organizationId, id], onDelete: Restrict, onUpdate: NoAction)
+
+  @@unique([organizationId, id])
+  @@index([organizationId, ticketId, createdAt, id])
+  @@map("ticket_events")
+}
+
+model OutboxEvent {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String @db.Uuid @map("organization_id")
+  aggregateType String @map("aggregate_type")
+  aggregateId String @db.Uuid @map("aggregate_id")
+  aggregateVersion Int @map("aggregate_version")
+  eventType String @map("event_type")
+  destination String
+  payload Json
+  status String @default("pending")
+  attemptCount Int @default(0) @map("attempt_count")
+  availableAt DateTime @default(now()) @db.Timestamptz(6) @map("available_at")
+  leaseToken String? @db.Uuid @map("lease_token")
+  leaseExpiresAt DateTime? @db.Timestamptz(6) @map("lease_expires_at")
+  publishedAt DateTime? @db.Timestamptz(6) @map("published_at")
+  createdAt DateTime @default(now()) @db.Timestamptz(6) @map("created_at")
+  updatedAt DateTime @updatedAt @db.Timestamptz(6) @map("updated_at")
+  organization Organization @relation("OutboxEvent_organization", fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+
+  @@unique([organizationId, id])
+  @@unique([organizationId, aggregateType, aggregateId, aggregateVersion, eventType, destination], map: "outbox_delivery_key")
+  @@index([status, availableAt])
+  @@map("outbox_events")
+}
+
+model OperationReceipt {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String? @db.Uuid @map("organization_id")
+  actorScope String @map("actor_scope")
+  operation String
+  commandId String @db.Uuid @map("command_id")
+  requestHash String @map("request_hash")
+  responseRef Json @map("response_ref")
+  secretExpiresAt DateTime? @db.Timestamptz(6) @map("secret_expires_at")
+  createdAt DateTime @default(now()) @db.Timestamptz(6) @map("created_at")
+  organization Organization? @relation("OperationReceipt_organization", fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+
+  @@unique([actorScope, operation, commandId])
+  @@unique([organizationId, id])
+  @@map("operation_receipts")
+}
+
+model AuditEvent {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String @db.Uuid @map("organization_id")
+  actorMembershipId String? @db.Uuid @map("actor_membership_id")
+  action String
+  resourceType String @map("resource_type")
+  resourceId String @db.Uuid @map("resource_id")
+  requestId String @map("request_id")
+  beforeMeta Json? @map("before_meta")
+  afterMeta Json? @map("after_meta")
+  createdAt DateTime @default(now()) @db.Timestamptz(6) @map("created_at")
+  organization Organization @relation("AuditEvent_organization", fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  actor Membership? @relation("AuditEvent_actor", fields: [organizationId, actorMembershipId], references: [organizationId, id], onDelete: Restrict, onUpdate: NoAction)
+
+  @@unique([organizationId, id])
+  @@index([organizationId, resourceType, resourceId, createdAt])
+  @@map("audit_events")
+}
