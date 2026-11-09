@@ -55,6 +55,8 @@ P02 没有企业时显示创建入口；有一个企业可直接进入收件箱�
 
 ## 4 客户聊天小窗与演示
 
+T10 实现与真实跨站验收见 [访客聊天开发与验收](visitor-chat-development.md)。
+
 父站点 widget.js 只负责浮动入口、iframe 创建、尺寸/开关、第一方令牌保存及受限 postMessage。iframe origin 必须是配置的 SmartDesk 地址；双方同时校验 origin 和 source，不支持任意键的通用存储代理。
 
 身份存储以 publicKey+父站点 origin 分区；只存访客令牌与过期信息，不把成员 Cookie 或模型凭据交给父站点。A020/A021 由父站点加载脚本请求，成功后保存并交给 iframe 内存；后续聊天请求由 iframe 发出。刷新由父站点恢复，不依赖第三方 Cookie。bootstrap 重试复用原 Idempotency-Key，窗口过期且未收到令牌时明确新建身份。存储不可用时仍能本次聊天，但提示关闭后可能不能恢复。

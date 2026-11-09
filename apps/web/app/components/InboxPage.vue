@@ -37,7 +37,7 @@ const time = (value: string) =>
       }}</span>
       <div v-if="inbox.ready" class="inbox-account">
         <span>{{ inbox.user?.displayName }}</span>
-        <button :disabled="inbox.busy" @click="inbox.availability">
+        <button :disabled="inbox.busy || !inbox.me" @click="inbox.availability">
           {{
             inbox.me?.availability === 'available'
               ? '接待中 · 切为离开'

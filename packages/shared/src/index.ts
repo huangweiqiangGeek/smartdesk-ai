@@ -112,6 +112,7 @@ export interface ConversationView {
   };
   status: ConversationStatus;
   assignedMembershipId: string | null;
+  assignedDisplayName?: string | null;
   version: number;
   lastSeq: number;
   lastVisitorSeq: number;

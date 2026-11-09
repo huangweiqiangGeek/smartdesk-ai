@@ -219,6 +219,20 @@ export class ConversationService {
           >`SELECT m.conversation_id, count(*)::int AS unread FROM messages m LEFT JOIN conversation_reads r ON r.organization_id=m.organization_id AND r.conversation_id=m.conversation_id AND r.membership_id=${actor.id}::uuid WHERE m.organization_id=${actor.organizationId}::uuid AND m.conversation_id=ANY(${ids}::uuid[]) AND m.seq>coalesce(r.last_read_seq,0) AND m.sender_type='visitor' GROUP BY m.conversation_id`
         : [];
     const customerMap = new Map(customers.map((c) => [c.id, c]));
+    const assignees = await tx.membership.findMany({
+      where: {
+        organizationId: actor.organizationId,
+        id: {
+          in: conversations.flatMap((c) =>
+            c.assignedMembershipId ? [c.assignedMembershipId] : [],
+          ),
+        },
+      },
+      select: { id: true, user: { select: { displayName: true } } },
+    });
+    const assigneeNames = new Map(
+      assignees.map((m) => [m.id, m.user.displayName]),
+    );
     const summaryMap = new Map(
       summaries.map((c) => [c.conversation_id, c.summary]),
     );
@@ -228,6 +242,9 @@ export class ConversationService {
       customer: customerMap.get(c.customerId)!,
       status: c.status as ConversationView['status'],
       assignedMembershipId: c.assignedMembershipId,
+      assignedDisplayName: c.assignedMembershipId
+        ? (assigneeNames.get(c.assignedMembershipId) ?? null)
+        : null,
       version: c.version,
       lastSeq: c.lastSeq,
       lastVisitorSeq: c.lastVisitorSeq,

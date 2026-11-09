@@ -3,6 +3,7 @@ import { onMounted, onBeforeUnmount, ref, watch } from 'vue';
 import { useRoute } from '#app';
 import type { VisitorCustomerView } from '@smartdesk/shared';
 import { useSupportClient } from '../../composables/useSupportClient';
+import VisitorChat from '../../components/VisitorChat.vue';
 const support = useSupportClient();
 const route = useRoute();
 const publicKey = String(route.params.publicKey);
@@ -150,8 +151,9 @@ onBeforeUnmount(() => {
     <template v-else>
       <p class="connected" role="status">访客身份已连接</p>
       <p v-if="warning" class="error" role="status">{{ warning }}</p>
+      <VisitorChat :key="customer.id" />
       <p class="hint">
-        联系资料选填，方便后续跟进。目前可管理访客资料，消息咨询即将开放。
+        联系资料选填，方便后续跟进。不填写也能留言；邮箱不会用于找回其他访客的历史。
       </p>
       <form @submit.prevent="save">
         <label

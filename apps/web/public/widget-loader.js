@@ -14,6 +14,7 @@
   let payload;
   let expired = false;
   let frame;
+  const abort = new AbortController();
   try {
     const stored = JSON.parse(localStorage.getItem(storageKey) ?? '{}');
     if (stored && typeof stored === 'object') state = stored;
@@ -26,7 +27,7 @@
   box.style.cssText =
     'position:fixed;right:16px;bottom:16px;width:min(380px,calc(100vw - 32px));z-index:2147483000;background:#fafbf8;border:1px solid #c7d0c9;border-radius:12px;box-shadow:0 12px 40px #19332e26;overflow:hidden;font:14px/1.6 sans-serif;color:#19332e';
   const toggle = document.createElement('button');
-  toggle.textContent = 'SmartDesk · 在线咨询';
+  toggle.textContent = 'SmartDesk · 联系客服';
   toggle.style.cssText =
     'display:block;width:100%;border:0;padding:14px 20px;background:#183f35;color:#fff;text-align:left;cursor:pointer;font:inherit';
   toggle.setAttribute('aria-expanded', 'true');
@@ -53,7 +54,7 @@
     }
   }
   function deliver() {
-    if (ready && payload)
+    if (!abort.signal.aborted && ready && payload)
       frame.contentWindow.postMessage(
         {
           type: 'smartdesk:init',
@@ -84,7 +85,12 @@
   async function request(path, options = {}) {
     const response = await fetch(
       `${widgetOrigin}/api/v1/public/widgets/${publicKey}${path}`,
-      { ...options, credentials: 'omit', cache: 'no-store' },
+      {
+        ...options,
+        signal: abort.signal,
+        credentials: 'omit',
+        cache: 'no-store',
+      },
     );
     const value = await response.json();
     if (!response.ok)
@@ -165,10 +171,13 @@
     }
     void connect();
   };
-  window.addEventListener(
-    'pagehide',
-    () => window.removeEventListener('message', receive),
-    { once: true },
-  );
+  function dispose() {
+    abort.abort();
+    window.removeEventListener('message', receive);
+    window.removeEventListener('pagehide', dispose);
+    box.remove();
+  }
+  box.addEventListener('smartdesk:dispose', dispose, { once: true });
+  window.addEventListener('pagehide', dispose, { once: true });
   void connect();
 })();

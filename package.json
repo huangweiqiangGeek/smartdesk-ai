@@ -26,6 +26,7 @@
     "test:database": "pnpm db:generate && pnpm --filter @smartdesk/server build && node tests/integration/database.mjs",
     "test:identity": "pnpm build && node tests/integration/identity.mjs",
     "test:widget": "pnpm build && node tests/integration/widget.mjs",
+    "test:visitor-chat": "pnpm build && node tests/integration/visitor-chat.mjs",
     "test:messages": "pnpm --filter @smartdesk/shared build && pnpm --filter @smartdesk/server build && node tests/integration/messages.mjs",
     "test:realtime": "pnpm --filter @smartdesk/shared build && pnpm --filter @smartdesk/server build && node tests/integration/realtime.mjs",
     "test:frontend": "pnpm --filter @smartdesk/shared build && pnpm --filter @smartdesk/server build && node tests/integration/frontend.mjs",

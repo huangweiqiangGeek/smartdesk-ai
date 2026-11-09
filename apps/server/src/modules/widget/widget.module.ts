@@ -38,12 +38,27 @@ class WidgetController {
         r.path,
       );
       if (publicMatch) {
-        const w = await this.widget.publicConfig(
-          publicMatch[1]!,
-          typeof req.headers.origin === 'string' ? req.headers.origin : '',
-        );
+        let origin =
+          typeof req.headers.origin === 'string' ? req.headers.origin : '';
+        // Browsers may omit Origin for same-origin GET. Only the configured
+        // widget site with an exact Referer and same-origin fetch metadata qualifies.
+        if (
+          !origin &&
+          r.method === 'GET' &&
+          req.headers['sec-fetch-site'] === 'same-origin'
+        ) {
+          try {
+            if (
+              new URL(req.headers.referer ?? '').origin === this.widget.origin
+            )
+              origin = this.widget.origin;
+          } catch {
+            /* Missing/invalid reference remains denied. */
+          }
+        }
+        const w = await this.widget.publicConfig(publicMatch[1]!, origin);
         res.setHeader('Vary', 'Origin');
-        res.setHeader('Access-Control-Allow-Origin', req.headers.origin!);
+        res.setHeader('Access-Control-Allow-Origin', origin);
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
         res.setHeader(
           'Access-Control-Allow-Headers',

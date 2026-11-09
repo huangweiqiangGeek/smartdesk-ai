@@ -34,7 +34,11 @@ const dbUrl = new URL(base);
 dbUrl.pathname = '/' + name;
 assert.notEqual(dbUrl.pathname, base.pathname);
 const db = new Client({ connectionString: dbUrl.href });
-const evidence = resolve(root, 'test-results/widget');
+const chatAcceptance = process.env.WIDGET_CHAT_ACCEPTANCE === 'true';
+const evidence = resolve(
+  root,
+  chatAcceptance ? 'test-results/visitor-chat' : 'test-results/widget',
+);
 const children = [];
 let browser, tls, before;
 let created = false,
@@ -225,6 +229,7 @@ try {
       HOST: '127.0.0.1',
       NUXT_API_BASE: api,
       NUXT_PUBLIC_SOCKET_BASE: widget,
+      NUXT_PUBLIC_WIDGET_ORIGIN: widget,
     },
   );
   await ready(web + '/login', nuxt);
@@ -604,7 +609,11 @@ try {
         res.end(JSON.stringify({ cookie: req.headers.cookie ?? '' }));
         return;
       }
-      if (host !== 'widget.test') {
+      if (
+        host !== 'widget.test' &&
+        !req.url.startsWith('/demo/') &&
+        !req.url.startsWith('/_nuxt/')
+      ) {
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
         if (req.url.startsWith('/sender')) {
           res.end('<!doctype html><title>message sender</title>');
@@ -959,6 +968,24 @@ try {
   pass(
     'expired lost bootstrap stays tombstoned until explicit new-identity action',
   );
+  if (chatAcceptance) {
+    const { verifyVisitorChat } = await import('./visitor-chat.mjs');
+    await verifyVisitorChat({
+      browser,
+      request,
+      db,
+      siteA,
+      siteB,
+      widget,
+      publicKey,
+      configure,
+      org,
+      cookie,
+      pass,
+      evidence,
+      api,
+    });
+  }
 } finally {
   await browser?.close();
   if (tls) {

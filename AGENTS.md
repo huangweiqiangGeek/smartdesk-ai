@@ -17,6 +17,7 @@
 | T07 前端客户端、身份、消息归并、恢复与草稿 | [前端连接开发与验收](docs/frontend-development.md)、[前端规范](docs/frontend.md)、[API 第 4 节](docs/api-v1.md#4-socket-合同与历史恢复)、[页面公共规则](docs/pages-v1.md#2-公共前端规则) |
 | T08 在线心跳、认领/交接/关闭、成员停用与 AI 开关补偿 | [接待开发与验收](docs/reception-development.md)、[API](docs/api-v1.md)、[后端](docs/backend.md)、[数据模型](docs/data-model-v1.md) |
 | T09 三栏工作台、授权列表/未读、人工输入与内部备注 | [收件箱开发与验收](docs/inbox-development.md)、[前端](docs/frontend.md)、[页面 P04](docs/pages-v1.md)、[API](docs/api-v1.md) |
+| T10 访客聊天、离线留言、历史和 SaaS 演示 | [访客聊天开发与验收](docs/visitor-chat-development.md)、[页面 P03/P10](docs/pages-v1.md)、[API](docs/api-v1.md)、[前端](docs/frontend.md) |
 | 消息字段、ACK、事件或跨服务调用变更 | [契约](docs/contracts.md)及涉及的前端/后端/AI 规范 |
 | 仅修改文档 | [文档索引与维护规则](docs/README.md)及被修改主题；检查反向引用 |
 

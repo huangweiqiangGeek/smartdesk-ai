@@ -42,7 +42,7 @@ T08 已实现 A015—A017/A030—A037，并完成 A008/A014 补偿与 Socket 心
 | WidgetConfigView | publicKey、allowedOrigins、welcomeText、defaultLanguage、enabled、version；公开版本省略 allowedOrigins 和管理字段 |
 | VisitorBootstrap | visitorToken（创建及同请求恢复时）、expiresAt、customer{id,name,email,preferredLanguage,version}、widget 公共配置、identityReset（原凭据过期而新建时为 true）；恢复已有凭据时无需重发原令牌 |
 | CustomerView | id、name、email、preferredLanguage、internalNotes、version、createdAt；访客修改结果仅返回本人 id/name/email/preferredLanguage/version |
-| ConversationView | id、customer 摘要、status、assignedMembershipId、version、lastSeq、lastVisitorSeq、lastMessageSummary、updatedAt、firstHandoffAt、handoffReason、closedAt、resolution；后台另有 unreadCount，访客不含备注/内部错误；lastMessageSummary 只来自授权公开消息 |
+| ConversationView | id、customer 摘要、status、assignedMembershipId、assignedDisplayName?（负责人公开显示名）、version、lastSeq、lastVisitorSeq、lastMessageSummary、updatedAt、firstHandoffAt、handoffReason、closedAt、resolution；后台另有 unreadCount，访客不含备注/内部错误；lastMessageSummary 只来自授权公开消息 |
 | Message | id、conversationId、senderId、senderType、clientMessageId、seq、content、createdAt、conversationVersion；内部 aiTaskId 和 sourceSnapshot 不属于访客 DTO |
 | MessagePage | items、mode、snapshotThroughSeq、windowStartSeq、nextCursor、hasMore；items 始终按 seq 升序 |
 | NoteView | id、conversationId、authorMembershipId、clientNoteId、content、createdAt；仅授权后台 |

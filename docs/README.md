@@ -17,6 +17,7 @@
 | 前端身份上下文、消息状态、历史补拉、连接与草稿隔离 | [T07 前端连接开发与验收](frontend-development.md) |
 | 在线判定、会话状态命令、停用/关闭 AI 补偿 | [T08 接待开发与验收](reception-development.md) |
 | 三栏工作台、授权未读、公开消息/备注与真实浏览器验证 | [T09 客服工作台开发与验收](inbox-development.md) |
+| 访客聊天、同凭据历史、离线留言及合成 SaaS 演示页 | [T10 访客聊天开发与验收](visitor-chat-development.md) |
 | 路由、DTO、角色、错误、Socket 与 AI 内部调用 | [V1 API 详细设计](api-v1.md) |
 | 核心页面、交互和页面接口映射 | [V1 页面设计](pages-v1.md) |
 | 产品运行时 Agent 编排、检索、交接与评测 | [V1 Agent 执行流程](ai-workflow-v1.md) |
